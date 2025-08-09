@@ -1,7 +1,13 @@
-import express from 'express';
+import express, { json } from 'express';
 import cors from 'cors';
-
 import { env } from './utils/env.js';
+import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+import pino from 'pino-http';
+import dotenv from 'dotenv';
+import router from './routers/index.js';
+
+dotenv.config();
 
 const PORT = Number(env('PORT', '3000'));
 
@@ -10,12 +16,21 @@ export const setupServer = () => {
 
   app.use(express.json());
   app.use(cors());
+  app.use(
+    pino({
+      transport: {
+        target: 'pino-pretty',
+      },
+    }),
+  );
 
-  //   app.use(productsRouter);
+  app.use(json());
 
-  //   app.use('*', notFoundHandler);
+  app.use(router);
 
-  //   app.use(errorHandler);
+  app.use(notFoundHandler);
+
+  app.use(errorHandler);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
